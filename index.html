@@ -19,7 +19,7 @@
 #gpsStatus{margin-top:9px}
 #position{margin-top:5px}
 @media(max-width:360px){.gps-cell strong{font-size:24px}.gps-number{font-size:58px}}
-</style></head><body><header class="top"><div class="eyebrow">YOUR PERSONAL GOLF COMPANION</div><h1>⛳ Pocasset Caddie</h1><div class="muted">Version 2.1 · GPS · Green heat maps · Green tees</div></header><main class="wrap"><section class="card" id="gpsCard">
+</style></head><body><header class="top"><div class="eyebrow">YOUR PERSONAL GOLF COMPANION</div><h1>⛳ Pocasset Caddie</h1><div class="muted">Version 2.1.1 · GPS diagnostics · Green heat maps · Green tees</div></header><main class="wrap"><section class="card" id="gpsCard">
   <div class="row"><div><div class="label">GPS Caddie · Mapped greens</div><h2 class="heading" style="margin:5px 0">📍 Live yardages</h2></div><span class="pill" id="gpsHoleTag">HOLE 1</span></div>
   <div class="gps-top"><div class="label">Distance to center of green</div><div class="gps-number"><span id="gpsCenter">—</span> <small>yd</small></div><div class="tiny" id="gpsMode">Tap Start GPS on your iPhone, or try the tee demo.</div></div>
   <div class="gps-grid">
@@ -150,14 +150,32 @@ function processPosition(p){gpsMode='live';gpsPoint={point:[p.coords.longitude,p
   $('gps').textContent='Stop GPS';$('gps').className='secondary';
 }
 function stopGps(){if(gpsWatchId!==null){navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null}gpsMode='off';gpsPoint=null;setText('gpsStatus','GPS stopped.');setText('gpsMode','Tap Start GPS or try the tee demo.');setText('position','');$('gps').textContent='Start live GPS';$('gps').className='';renderGps()}
-function startGps(){if(!navigator.geolocation){setText('gpsStatus','GPS unavailable in this browser. Open the GitHub Pages HTTPS link in Safari.');return}
+function startGps(){
+  if(!window.isSecureContext){
+    setText('gpsStatus','GPS BLOCKED: This page is not in a secure browser context. Open your published https://scottamcintire.github.io/pocasset_caddie/ URL directly in Safari—not a downloaded HTML file or preview.');
+    setText('gpsMode','Live GPS requires HTTPS.');return;
+  }
+  if(!navigator.geolocation){
+    setText('gpsStatus','GPS unavailable in this browser. Use Safari on your iPhone and check Location Services.');return;
+  }
   if(gpsWatchId!==null)return;
-  gpsPoint=null;gpsMode='live';setText('gpsStatus','Requesting iPhone location permission…');
-  try {gpsWatchId=navigator.geolocation.watchPosition(processPosition,e=>{
-    setText('gpsStatus',`Location unavailable: ${e.message}. Check iPhone Location Services and Safari permission.`);
-    if(e.code===1){stopGps();setText('gpsStatus',`GPS permission denied: ${e.message}`)}
-  },{enableHighAccuracy:true,maximumAge:2000,timeout:20000});$('gps').textContent='Stop GPS';$('gps').className='secondary';
-  } catch(e){setText('gpsStatus','GPS error: '+e.message);stopGps()}
+  gpsPoint=null;gpsMode='live';
+  setText('gpsStatus','Requesting iPhone location… If asked, tap Allow While Using.');
+  $('gps').textContent='Stop GPS';$('gps').className='secondary';
+  try {
+    gpsWatchId=navigator.geolocation.watchPosition(processPosition,e=>{
+      const causes={1:'Location permission denied. On iPhone, open Settings → Privacy & Security → Location Services; allow Safari Websites, then in Safari tap aA / Page Menu → Website Settings → Location → Allow.',2:'iPhone could not determine its position. Try outdoors with Location Services enabled and cellular/Wi-Fi available.',3:'Location timed out. Move outdoors and tap Start live GPS again.'};
+      if(gpsWatchId!==null){navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null;}
+      gpsMode='off';gpsPoint=null;
+      $('gps').textContent='Retry live GPS';$('gps').className='';
+      setText('gpsStatus',`GPS ERROR ${e.code}: ${causes[e.code]||e.message} (${e.message})`);
+      setText('gpsMode','No live fix yet.');renderGps();
+    },{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
+  }catch(e){
+    gpsWatchId=null;gpsMode='off';gpsPoint=null;
+    $('gps').textContent='Retry live GPS';$('gps').className='';
+    setText('gpsStatus','GPS startup error: '+e.message);
+  }
 }
 $('gps').onclick=()=>gpsWatchId!==null?stopGps():startGps();
 $('geoDemo').onclick=()=>{if(gpsWatchId!==null){navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null}
