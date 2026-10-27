@@ -9,4 +9,4 @@ Live at: https://scottamcintire.github.io/pocasset_caddie/greens-test/
 
 This is a separate test. It does not change the main V2.2.1 app at the site root or `hold2-test/`.
 
-Built 2026-10-26 12:31 from the master archive (`Pocasset_AI_Master/03_greens/hole_NN/approved/`): pin model (points + t) taken verbatim from each approved `index.html`; images are WebP copies of the approved 2× masters (long side ≤ 1600 px). Estimates only — not surveyed. Imagery derived from GolfLogix heat maps; course mapping © OpenStreetMap contributors (ODbL 1.0).
+Built 2026-10-26 21:47 from the master archive (`Pocasset_AI_Master/03_greens/hole_NN/approved/`): pin model (points + t) taken verbatim from each approved `index.html`; images are WebP copies of the approved 2× masters (long side ≤ 1600 px). Estimates only — not surveyed. Imagery derived from GolfLogix heat maps; course mapping © OpenStreetMap contributors (ODbL 1.0).
